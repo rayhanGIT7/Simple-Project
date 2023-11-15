@@ -1,39 +1,61 @@
 <?php 
+  
+ include 'db.php';
 
-   
-     $host_name='localhost';
-     $user_name ='root';
-     $db_password ='';
-     $db_name='registration';
+session_start();
 
-     $database_connection = mysqli_connect($host_name,   $user_name ,$db_password, $db_name);
+$error = "";
 
-     
-     
-     $error ="";
-      
+if (isset($_POST['submit'])) {
+    if (isset($_POST['numbers']) && isset($_POST['Password'])) {
+        $number = $_POST['numbers'];
+        $password = $_POST['Password'];
 
+        // Create a prepared statement for the UNION query
+        $union_query = "SELECT name, email, numbers, image, password, role FROM doctor_info
+                        UNION
+                        SELECT name, email, numbers, image, password, role FROM user_info";
 
-   if ($_SERVER['REQUEST_METHOD']=='POST') {
-     	$email=$_POST['email'];
-			$password =$_POST['Password'];
+        $checking_query = "SELECT * FROM ($union_query) AS combined_data WHERE numbers = ? AND password = ?";
 
+        $stmt = mysqli_prepare($database_connection, $checking_query);
 
+        if ($stmt) {
+            mysqli_stmt_bind_param($stmt, "ss", $number, $password);
+            mysqli_stmt_execute($stmt);
 
-			$checking_query ="SELECT count(*) AS ray FROM informations WHERE email ='$email' AND password = '$password'";
-			$result = mysqli_query($database_connection,$checking_query);
-			$after_assoc = mysqli_fetch_assoc($result);
+            $result = mysqli_stmt_get_result($stmt);
 
-			if ($after_assoc ['ray']>0) {
-      
-			header("location:doctor_list.php");  
-			}
-			else{
-			$error="Your Email Or password Invalid !";
-				
- }
-			
-   
+            if (mysqli_num_rows($result) > 0) {
+                $data = mysqli_fetch_assoc($result);
+
+                if ($data['role'] == 'doctor') {
+                    $_SESSION['numbers'] = $data['numbers'];
+                    $_SESSION['name'] = $data['name'];
+                    $_SESSION['email'] = $data['email'];
+                    $_SESSION['password'] = $data['password'];
+                    $_SESSION['image'] = $data['image'];
+
+                    header("location: DoctorProfile.php");
+                } elseif ($data['role'] == 'user') {
+                    $_SESSION['numbers'] = $data['numbers'];
+                    $_SESSION['name'] = $data['name'];
+                    $_SESSION['email'] = $data['email'];
+                    $_SESSION['password'] = $data['password'];
+                    $_SESSION['image'] = $data['image'];
+                    $_SESSION['role']=$data['role'];
+
+                    header("location: home_page.php");
+                } else {
+                    $error = "Invalid role detected.";
+                }
+            } else {
+                $error = "Invalid phone number or password.";
+            }
+        } else {
+            $error = "Failed to prepare the SQL statement.";
+        }
+    }
 }
 
    
@@ -42,7 +64,7 @@
 
 
 
-
+<?php include "nav.php" ?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -50,34 +72,21 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>login</title>
 	<link rel="stylesheet" type="text/css" href="login.css">
-	 <link rel="stylesheet" type="text/css" href="navigation.css">
+	
 </head>
 <body>
-	   <div class="nav">
-        <label class="logo">Doctor's Appointment System</label>
-      
-        <ul>
-          
-        <li><a href="home_page.php">Home</a></li>
-        <li><a href="About.html">About</a></li>  
-        <li><a href="doctor.html">Doctor's</a></li>   
-        <li><a href="registration.php">Registration</a></li>   
-        <li><a href="login.php">Login</a></li>   
-         <li><a href="online_service.php">OnLine_Services</a></li> 
-
-     </ul>
-       </div>
+	 
 	 <div class="login-form">
 	 	<h1>Login Form</h1>
 	 	<form action="#" method="post">
-	 	
-	 	<p>User Email</p>
-	 	<input type="email" name="email" placeholder="Enter your Email">
-	 	<p>Password</p>
-	 	<input type="Password" name="Password" placeholder="Enter your Password">
-	 	<span style="color: red;font-weight: bold; font-size: 20px;"> <?php echo $error ;?></span>
-	 	<button type="submit">Login</button>
-	 	
+    <p>User Phone Number</p>
+    <input type="tel" name="numbers" placeholder="Enter your Phone Number">
+    <p>Password</p>
+    <input type="password" name="Password" placeholder="Enter your Password">
+    <span style="color: red; font-weight: bold; font-size: 20px;"><?php echo $error; ?></span>
+    <button name="submit" type="submit">Login</button>
+</form>
+
 
 	 	</form>
 	 </div>

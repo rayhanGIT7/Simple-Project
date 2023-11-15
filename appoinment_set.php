@@ -1,5 +1,7 @@
 
 <?php
+include 'db.php';
+
      $err_name="";
      $err_date="";
      $err_number="";
@@ -25,25 +27,24 @@
      $number=$_POST['number'];
     
 
+$doctor_id= "";
 
 
-     $host_name='localhost';
-     $user_name ='root';
-     $db_password ='';
-     $db_name='student';
+if (isset($_GET['id'])) {
+  $doctor_id = intval($_GET['id']);
+}
 
-     $database_connection = mysqli_connect($host_name,   $user_name ,$db_password, $db_name);
-     
+
 
     
 
-        $insart_query ="INSERT INTO appointments( name,dates,numbers) VALUES ('$name',' $date','$number')";
+        $insart_query ="INSERT INTO appointment_info( name,date,numbers,doctor_id) VALUES ('$name',' $date','$number','$doctor_id')";
         
        if(mysqli_query( $database_connection, $insart_query)){  
       ?>
       <script>
         alert("successfully");
-        window.location.replace("doctor_list.php");
+        window.location.replace("home_page.php");
       </script>
       <?php   
    }
@@ -54,13 +55,13 @@
 
 
      }
-
+}
      
 }
-}
+
      
 ?>
-
+<?php include "nav.php" ?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -68,27 +69,12 @@
   <link rel="stylesheet" type="text/css" href="style.css">
   <link href="https://fonts.googleapis.com/css?family=Quicksand&display=swap" rel="stylesheet">
   <link rel="stylesheet" type="text/css" href="appoinment.css">
-  <link rel="stylesheet" type="text/css" href="navigation.css">
-  
 
   
 </head>
 <body> 
       
-       <div class="nav">
-        <label class="logo">Doctor's Appointment System</label>
-      
-        <ul>
-          
-        <li><a href="home_page.php">Home</a></li>
-        <li><a href="About.html">About</a></li>  
-        <li><a href="doctor.html">Doctor's</a></li>   
-        <li><a href="registration.php">Registration</a></li>   
-        <li><a href="login.php">Login</a></li>   
-         <li><a href="online_service.php">OnLine_Services</a></li> 
-
-     </ul>
-       </div>
+    
   <div>
 
 
@@ -109,7 +95,7 @@
        
         
         
-        <button class="btn" type="submit">Send</button>
+        <button class="btn btn-primary" type="submit">Send</button>
         </form>
       </div>
     </div>
@@ -117,3 +103,4 @@
   
 </body>
 </html>
+<?php include "footer.html" ?>
